@@ -34,12 +34,13 @@ def create(request):
     # blog.save()
     # return redirect('/blog/' + str(blog.id))
     if request.method == 'POST':
+        blog = Blog
         form = BlogForm(request.POST)
         if form.is_valid():
             BlogForm.pub_date = timezone.datetime.now()
             bloggroup = form.save(commit=False)
             bloggroup.save()
-            return redirect('/')
+            return redirect('/blog/' + str(blog.id))
         else:
             form = BlogForm()
         return render(request, 'new.html', {'form' : form})
