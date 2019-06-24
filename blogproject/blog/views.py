@@ -3,6 +3,7 @@ from .models import Blog , Comment
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
+from .forms import BlogForm
 # Create your views here.
 
 def home(request):
@@ -20,30 +21,50 @@ def details(request, blog_id):
 def new(request):
     return render(request, 'new.html')
 
-def create(request):
-    blog = Blog()
-    blog.title = request.GET['title']
-    blog.body = request.GET['body']
-    blog.pub_date = timezone.datetime.now()
-    blog.save()
-    return redirect('/blog/' + str(blog.id))
-
-def edit(request,blog_id):
-    blog = get_object_or_404(Blog, pk=blog_id)
-    if request.method == "POST":
-        blog.title = request.POST['title']
-        blog.body = request.POST['body']
-        blog.pub_date = timezone.datetime.now()
-        blog.save()
-        return redirect('/blog/' + str(blog.id))
-    return render(request,'edit.html',{'blog':blog})
-
-
 def delete(request, blog_id):
     blog = get_object_or_404(Blog, pk=blog_id)
     blog.delete()
     return redirect('/')
 
+def create(request):
+    # blog = Blog()
+    # blog.title = request.GET['title']
+    # blog.body = request.GET['body']
+    # blog.pub_date = timezone.datetime.now()
+    # blog.save()
+    # return redirect('/blog/' + str(blog.id))
+    if request.method == 'POST':
+        form = BlogForm(request.POST)
+        if form.is_valid():
+            BlogForm.pub_date = timezone.datetime.now()
+            bloggroup = form.save(commit=False)
+            bloggroup.save()
+            return redirect('/')
+        else:
+            form = BlogForm()
+        return render(request, 'new.html', {'form' : form})
+
+
+def edit(request,blog_id):
+    # blog = get_object_or_404(Blog, pk=blog_id)
+    # if request.method == "POST":
+    #     blog.title = request.POST['title']
+    #     blog.body = request.POST['body']
+    #     blog.pub_date = timezone.datetime.now()
+    #     blog.save()
+    #     return redirect('/blog/' + str(blog.id))
+    # return render(request,'edit.html',{'blog':blog})
+    blog = get_object_or_404(Blog, pk=blog_id)
+    if request.method == 'POST':
+        form = BlogForm(request.POST, instance=blog)
+        if form.is_valid():
+            blog.pub_date = timezone.datetime.now()
+            blog = form.save(commit=False)
+            blog.save()
+            return redirect('details', pk=blog.id)
+    else:
+        form = BlogForm(instance=blog)
+    return render(request, 'edit.html', {'form': form, 'blog': blog})
 
 
 #blog/views.py
